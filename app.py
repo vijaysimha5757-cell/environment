@@ -1,7 +1,5 @@
 import gradio as gr
 from fastapi import FastAPI, Request
-import uvicorn
-import threading
 
 # ---------------- ENV ----------------
 class EVEnvironment:
@@ -43,14 +41,13 @@ class EVEnvironment:
 env = EVEnvironment()
 
 # ---------------- FASTAPI ----------------
-api = FastAPI()
+app = FastAPI()
 
-@api.post("/reset")
-async def reset(request: Request):
-    state = env.reset()
-    return {"state": state}
+@app.post("/reset")
+async def reset():
+    return {"state": env.reset()}
 
-@api.post("/step")
+@app.post("/step")
 async def step(request: Request):
     data = await request.json()
     action = data.get("action", 0)
@@ -75,10 +72,6 @@ def take_action(action):
     return f"{state} | Reward: {reward} | Done: {done}"
 
 
-def reset_game():
-    return str(env.reset())
-
-
 ui = gr.Interface(
     fn=take_action,
     inputs=gr.Textbox(label="Enter Action (0=Drive, 1=Charge)"),
@@ -86,10 +79,5 @@ ui = gr.Interface(
     title="🚗 EV Simulator"
 )
 
-# ---------------- RUN BOTH ----------------
-def run_api():
-    uvicorn.run(api, host="0.0.0.0", port=8000)
-
-threading.Thread(target=run_api, daemon=True).start()
-
-ui.launch(server_name="0.0.0.0", server_port=7860)
+# 🔥 THIS IS THE KEY LINE
+app = gr.mount_gradio_app(app, ui, path="/")
