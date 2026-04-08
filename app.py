@@ -1,5 +1,5 @@
 import gradio as gr
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 import uvicorn
 import threading
 
@@ -46,20 +46,24 @@ env = EVEnvironment()
 api = FastAPI()
 
 @api.post("/reset")
-def reset():
-    return {"state": env.reset()}
+async def reset(request: Request):
+    state = env.reset()
+    return {"state": state}
 
 @api.post("/step")
-def step(data: dict):
+async def step(request: Request):
+    data = await request.json()
     action = data.get("action", 0)
+
     state, reward, done = env.step(action)
+
     return {
         "state": state,
         "reward": reward,
         "done": done
     }
 
-# ---------------- GRADIO ----------------
+# ---------------- GRADIO UI ----------------
 def take_action(action):
     try:
         action = int(action)
@@ -84,8 +88,8 @@ ui = gr.Interface(
 
 # ---------------- RUN BOTH ----------------
 def run_api():
-    uvicorn.run(api, host="127.0.0.1", port=8000)
+    uvicorn.run(api, host="0.0.0.0", port=8000)
 
 threading.Thread(target=run_api, daemon=True).start()
 
-ui.launch()
+ui.launch(server_name="0.0.0.0", server_port=7860)
