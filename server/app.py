@@ -3,6 +3,11 @@ import uvicorn
 
 app = FastAPI()
 
+# ✅ Root route (fixes "Details: Not Found")
+@app.get("/")
+def home():
+    return {"status": "running", "message": "OpenEnv Email Environment is live"}
+
 # ---------------- ENV ----------------
 class EmailEnv:
     def __init__(self):
@@ -30,7 +35,6 @@ class EmailEnv:
 
         return {"email": self.tasks[self.index-1][0]}, reward, self.done, {}
 
-
 env = EmailEnv()
 
 # ---------------- API ----------------
@@ -55,10 +59,9 @@ async def step(request: Request):
         "info": info
     }
 
-# ---------------- MAIN FUNCTION ----------------
+# ---------------- MAIN ----------------
 def main():
     uvicorn.run(app, host="0.0.0.0", port=7860)
 
-# REQUIRED ENTRY POINT
 if __name__ == "__main__":
     main()
