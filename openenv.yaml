@@ -1,0 +1,21 @@
+name: email-triage-env
+description: Email classification environment for OpenEnv hackathon
+
+observation_space:
+  type: object
+  properties:
+    email:
+      type: string
+
+action_space:
+  type: object
+  properties:
+    label:
+      type: string
+
+reward_range: [0, 1]
+
+tasks:
+  - id: easy
+  - id: medium
+  - id: hard
