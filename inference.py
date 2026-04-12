@@ -2,14 +2,16 @@ import requests
 
 BASE_URL = "http://localhost:7860"
 
-def run_env():
-    # Reset environment
+def run_task(task_name):
+    print(f"[START] task={task_name}", flush=True)
+
     res = requests.post(f"{BASE_URL}/reset")
     data = res.json()
 
     total_reward = 0
+    step_count = 0
 
-    for _ in range(3):
+    while True:
         email = data["observation"]["email"]
 
         # Simple rule-based agent
@@ -23,13 +25,22 @@ def run_env():
         res = requests.post(f"{BASE_URL}/step", json=action)
         data = res.json()
 
-        total_reward += data["reward"]
+        reward = data["reward"]
+        done = data["done"]
 
-        if data["done"]:
+        step_count += 1
+        total_reward += reward
+
+        print(f"[STEP] step={step_count} reward={reward}", flush=True)
+
+        if done:
             break
 
-    print("Final Score:", total_reward)
+    print(f"[END] task={task_name} score={total_reward} steps={step_count}", flush=True)
 
 
 if __name__ == "__main__":
-    run_env()
+    # Run all 3 tasks
+    run_task("easy")
+    run_task("medium")
+    run_task("hard")
