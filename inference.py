@@ -1,6 +1,34 @@
+import os
 import requests
+from openai import OpenAI
 
 BASE_URL = "http://localhost:7860"
+
+# ✅ Use hackathon provided proxy
+client = OpenAI(
+    base_url=os.environ["API_BASE_URL"],
+    api_key=os.environ["API_KEY"]
+)
+
+def get_action_from_llm(email):
+    prompt = f"Classify this email into one of: important, spam, work.\nEmail: {email}"
+
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
+    )
+
+    output = response.choices[0].message.content.lower()
+
+    if "spam" in output:
+        return {"label": "spam"}
+    elif "important" in output:
+        return {"label": "important"}
+    else:
+        return {"label": "work"}
+
 
 def run_task(task_name):
     print(f"[START] task={task_name}", flush=True)
@@ -14,13 +42,8 @@ def run_task(task_name):
     while True:
         email = data["observation"]["email"]
 
-        # Simple rule-based agent
-        if "win" in email.lower():
-            action = {"label": "spam"}
-        elif "meeting" in email.lower():
-            action = {"label": "important"}
-        else:
-            action = {"label": "work"}
+        # ✅ LLM decision
+        action = get_action_from_llm(email)
 
         res = requests.post(f"{BASE_URL}/step", json=action)
         data = res.json()
@@ -40,7 +63,6 @@ def run_task(task_name):
 
 
 if __name__ == "__main__":
-    # Run all 3 tasks
     run_task("easy")
     run_task("medium")
     run_task("hard")
