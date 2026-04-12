@@ -1,0 +1,13 @@
+[project]
+name = "email-triage-env"
+version = "0.1.0"
+description = "OpenEnv Email Classification Environment"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "requests"
+]
+
+[tool.openenv]
+entry_point = "app:app"
